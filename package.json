@@ -1,7 +1,7 @@
 {
   "name": "node-typescript-boilerplate",
-  "version": "0.0.0",
-  "description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
+  "version": "0.0.1",
+  "description": "…",
   "engineStrict": true,
   "engines": {
     "node": ">= 8.9.0"
@@ -30,6 +30,10 @@
   "author": "Jakub Synowiec <github@jakubsynowiec.info>",
   "license": "APLv2",
   "dependencies": {
+    "@types/babel-traverse": "^6.25.4",
+    "@types/babel-types": "^7.0.4",
+    "babel-codemod": "^2.0.3",
+    "babel-plugin-tester": "^5.5.0",
     "tslib": "~1.9.3"
   }
 }

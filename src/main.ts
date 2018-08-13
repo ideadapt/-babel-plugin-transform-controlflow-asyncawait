@@ -1,32 +1,28 @@
-/**
- * Some predefined delays (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
-}
+//tslint:disable no-console
+//tslint:disable function-name
+//tslint:disable no-default-export
+//tslint:disable no-implicit-dependencies
 
-/**
- * Returns a Promise<string> that resolves after given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - Number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(name: string, delay: number = Delays.Medium): Promise<string> {
-  return new Promise(
-    (resolve: (value?: string) => void) => setTimeout(
-      () => resolve(`Hello, ${name}`),
-      delay,
-    ),
-  );
-}
+import {NodePath} from 'babel-traverse';
+import {ArrowFunctionExpression, CallExpression, FunctionExpression, Identifier} from 'babel-types';
 
-// Below are examples of using TSLint errors suppression
-// Here it is suppressing missing type definitions for greeter function
-
-export async function greeter(name) { // tslint:disable-line typedef
-  // tslint:disable-next-line no-unsafe-any no-return-await
-  return await delayedHello(name, Delays.Long);
+export default function() {
+  return {
+    visitor: {
+      Identifier(path: NodePath<Identifier>) {
+        if (path.parentPath.isCallExpression()) {
+          const describeFunction = path.parent as CallExpression;
+          if (describeFunction.arguments[1]) {
+            const argType = describeFunction.arguments[1].type;
+            if (argType === 'FunctionExpression' || argType === 'ArrowFunctionExpression') {
+              const callback = describeFunction.arguments[1] as FunctionExpression|ArrowFunctionExpression;
+              if (!callback.async) {
+                callback.async = true;
+              }
+            }
+          }
+        }
+      },
+    },
+  };
 }
