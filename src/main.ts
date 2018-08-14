@@ -37,11 +37,10 @@ export default function () {
           if (t.isMemberExpression(path.parentPath)) {
             const wrappingStatement = path.getStatementParent();
             const callExpression = path.findParent((p: NodePath) => t.isCallExpression(p)) as NodePath<t.CallExpression>;
-            const validCall = !!callExpression;
-            const statementContainsCall = validCall && wrappingStatement.node.start <= callExpression.node.start;
+            const statementContainsCall = callExpression != null && wrappingStatement.node.start <= callExpression.node.start;
             if (statementContainsCall) {
               if (!callExpression.parentPath.isAwaitExpression()) {
-                callExpression.replaceWith(t.awaitExpression(callExpression.node as t.CallExpression));
+                callExpression.replaceWith(t.awaitExpression(callExpression.node));
                 callExpression.getFunctionParent().node.async = true;
               }
             }
