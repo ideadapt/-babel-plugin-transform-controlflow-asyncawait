@@ -10,12 +10,18 @@ import * as t from 'babel-types';
 export default function () {
   const webdriverCommands = [
     'click',
+    'getText',
     'sendKeys',
   ];
 
   const protractorApi = [
     'count',
     'isDisplayed',
+  ];
+
+  const customCalls = [
+    /^[.\w]*(get|open|enter|clear)\w*\([,'a-z\s\d]*\)/mi,
+    /myglobalApi\w*\([,'a-z\s]*\)/mi,
   ];
 
   return {
@@ -44,6 +50,14 @@ export default function () {
                 callExpression.getFunctionParent().node.async = true;
               }
             }
+          }
+        }
+      },
+      CallExpression(path: NodePath<t.CallExpression>) {
+        if (!path.parentPath.isAwaitExpression() && !path.parentPath.isMemberExpression()) {
+          if (customCalls.some((regex: RegExp) => regex.test(path.getSource()))) {
+            path.replaceWith(t.awaitExpression(path.node));
+            path.getFunctionParent().node.async = true;
           }
         }
       },
