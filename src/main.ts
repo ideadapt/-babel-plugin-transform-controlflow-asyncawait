@@ -1,4 +1,3 @@
-//tslint:disable no-console
 //tslint:disable function-name
 //tslint:disable no-default-export
 //tslint:disable no-implicit-dependencies
@@ -14,7 +13,7 @@ export default function () {
     'sendKeys',
     'isSelected',
     'isEnabled',
-    'getAttribute'
+    'getAttribute',
   ];
 
   const protractorApi = [
@@ -22,8 +21,8 @@ export default function () {
     'isDisplayed',
   ];
 
-  function createCustomCallRegex(customNames: string = 'get|open|enter|clear'){
-    return new RegExp("^[.\\w]*(" + customNames + ")\\w*\\([,'a-z\\s\\d]*\\)", 'mi');
+  function createCustomCallRegex(customNames: string = 'get|open|enter|clear') {
+    return new RegExp(`^\\w*(${customNames})\\w*`, 'mi');
   }
 
   return {
@@ -56,11 +55,17 @@ export default function () {
           }
         }
       },
-      CallExpression(path: NodePath<t.CallExpression>, state) {
+      CallExpression(path: NodePath<t.CallExpression>, state: {opts: { customCalls: string}}) {
         if (!path.parentPath.isAwaitExpression() && !path.parentPath.isMemberExpression()) {
           const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
-          console.log(state.opts.customCalls, customCallsRegex);
-          if (customCallsRegex.test(path.getSource())) {
+          let toTest = '';
+          if (t.isMemberExpression(path.node.callee)) {
+            const member = path.node.callee as t.MemberExpression;
+            toTest = (member.property as t.Identifier).name;
+          } else if (t.isIdentifier(path.node.callee)) {
+            toTest = (path.node.callee as t.Identifier).name;
+          }
+          if (customCallsRegex.test(toTest)) {
             path.replaceWith(t.awaitExpression(path.node));
             path.getFunctionParent().node.async = true;
           }
