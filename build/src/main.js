@@ -9,22 +9,49 @@ function default_1() {
         'isSelected',
         'isEnabled',
         'getAttribute',
+        'isPresent',
+        'getId',
     ];
     const protractorApi = [
+        'first',
+        'last',
         'count',
         'isDisplayed',
+        'setLocation',
+        'getLocation',
+        'navigate',
+        'executeScript',
+        'waitForAngular',
     ];
     function createCustomCallRegex(customNames = 'get|open|enter|clear') {
         return new RegExp(`^\\w*(${customNames})\\w*`, 'mi');
     }
+    function asyncAwaitIt(callExpr) {
+        callExpr.replaceWith(t.awaitExpression(callExpr.node));
+        callExpr.getFunctionParent().node.async = true;
+    }
+    function matchesLibraryApiName(identifier) {
+        return (webdriverCommands.includes(identifier.node.name) || protractorApi.includes(identifier.node.name)) &&
+            t.isMemberExpression(identifier.parentPath);
+    }
+    function getCallOf(identifier) {
+        const wrappingStatement = identifier.getStatementParent();
+        const callExpr = identifier.findParent((p) => t.isCallExpression(p));
+        const statementContainsCall = callExpr != null && wrappingStatement.node.start <= callExpr.node.start;
+        if (statementContainsCall) {
+            return callExpr;
+        }
+        return null;
+    }
     return {
         name: 'transformAsyncAwait',
         visitor: {
-            Identifier(path) {
-                if (path.node.name === 'it') {
-                    if (path.parentPath.isCallExpression()) {
-                        const itFn = path.parent;
-                        if (t.isFunctionExpression(itFn.arguments[1]) || t.isArrowFunctionExpression(itFn.arguments[1])) {
+            Identifier(identifier) {
+                if (identifier.node.name === 'it') {
+                    if (identifier.parentPath.isCallExpression()) {
+                        const itFn = identifier.parent;
+                        const itCallbackTypeSupported = t.isFunctionExpression(itFn.arguments[1]) || t.isArrowFunctionExpression(itFn.arguments[1]);
+                        if (itCallbackTypeSupported) {
                             const callback = itFn.arguments[1];
                             if (!callback.async) {
                                 callback.async = true;
@@ -32,34 +59,26 @@ function default_1() {
                         }
                     }
                 }
-                if (webdriverCommands.includes(path.node.name) || protractorApi.includes(path.node.name)) {
-                    if (t.isMemberExpression(path.parentPath)) {
-                        const wrappingStatement = path.getStatementParent();
-                        const callExpression = path.findParent((p) => t.isCallExpression(p));
-                        const statementContainsCall = callExpression != null && wrappingStatement.node.start <= callExpression.node.start;
-                        if (statementContainsCall) {
-                            if (!callExpression.parentPath.isAwaitExpression()) {
-                                callExpression.replaceWith(t.awaitExpression(callExpression.node));
-                                callExpression.getFunctionParent().node.async = true;
-                            }
-                        }
+                if (matchesLibraryApiName(identifier)) {
+                    const callExpr = getCallOf(identifier);
+                    if (callExpr != null && !callExpr.parentPath.isAwaitExpression()) {
+                        asyncAwaitIt(callExpr);
                     }
                 }
             },
-            CallExpression(path, state) {
-                if (!path.parentPath.isAwaitExpression() && !path.parentPath.isMemberExpression()) {
+            CallExpression(callExpr, state) {
+                if (!callExpr.parentPath.isAwaitExpression() && !callExpr.parentPath.isMemberExpression()) {
                     const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
-                    let toTest = '';
-                    if (t.isMemberExpression(path.node.callee)) {
-                        const member = path.node.callee;
-                        toTest = member.property.name;
+                    let methodName = '';
+                    if (t.isMemberExpression(callExpr.node.callee)) {
+                        const member = callExpr.node.callee;
+                        methodName = member.property.name;
                     }
-                    else if (t.isIdentifier(path.node.callee)) {
-                        toTest = path.node.callee.name;
+                    else if (t.isIdentifier(callExpr.node.callee)) {
+                        methodName = callExpr.node.callee.name;
                     }
-                    if (customCallsRegex.test(toTest)) {
-                        path.replaceWith(t.awaitExpression(path.node));
-                        path.getFunctionParent().node.async = true;
+                    if (customCallsRegex.test(methodName)) {
+                        asyncAwaitIt(callExpr);
                     }
                 }
             },
