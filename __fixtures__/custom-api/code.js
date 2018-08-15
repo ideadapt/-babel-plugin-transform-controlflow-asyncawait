@@ -5,4 +5,6 @@ function z() {
   expect(My.any.getIt()
     .openIt(1, 2, '3', global));
   My.any.openIt();
+  const it = 1;
+  expect(it()).toBe(true);
 }
