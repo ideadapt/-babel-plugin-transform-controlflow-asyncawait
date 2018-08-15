@@ -8,4 +8,14 @@ pluginTester({
   plugin: main,
   pluginName: 'controlflow-asyncawait',
   fixtures: path.join(__dirname, '..', '__fixtures__'),
+  tests: [
+    {
+      title: 'customCalls plugin option',
+      code: 'myCustomGlobalCall();',
+      output: 'await myCustomGlobalCall();',
+      pluginOptions: {
+        customCalls: 'myCustom',
+      },
+    },
+  ],
 });

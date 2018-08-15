@@ -12,6 +12,9 @@ export default function () {
     'click',
     'getText',
     'sendKeys',
+    'isSelected',
+    'isEnabled',
+    'getAttribute'
   ];
 
   const protractorApi = [
@@ -19,12 +22,12 @@ export default function () {
     'isDisplayed',
   ];
 
-  const customCalls = [
-    /^[.\w]*(get|open|enter|clear)\w*\([,'a-z\s\d]*\)/mi,
-    /myglobalApi\w*\([,'a-z\s]*\)/mi,
-  ];
+  function createCustomCallRegex(customNames: string = 'get|open|enter|clear'){
+    return new RegExp("^[.\\w]*(" + customNames + ")\\w*\\([,'a-z\\s\\d]*\\)", 'mi');
+  }
 
   return {
+    name: 'transformAsyncAwait',
     visitor: {
       Identifier(path: NodePath<t.Identifier>) {
         if (path.node.name === 'it') {
@@ -53,9 +56,11 @@ export default function () {
           }
         }
       },
-      CallExpression(path: NodePath<t.CallExpression>) {
+      CallExpression(path: NodePath<t.CallExpression>, state) {
         if (!path.parentPath.isAwaitExpression() && !path.parentPath.isMemberExpression()) {
-          if (customCalls.some((regex: RegExp) => regex.test(path.getSource()))) {
+          const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
+          console.log(state.opts.customCalls, customCallsRegex);
+          if (customCallsRegex.test(path.getSource())) {
             path.replaceWith(t.awaitExpression(path.node));
             path.getFunctionParent().node.async = true;
           }
