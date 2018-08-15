@@ -8,14 +8,14 @@ function default_1() {
         'sendKeys',
         'isSelected',
         'isEnabled',
-        'getAttribute'
+        'getAttribute',
     ];
     const protractorApi = [
         'count',
         'isDisplayed',
     ];
     function createCustomCallRegex(customNames = 'get|open|enter|clear') {
-        return new RegExp("^[.\\w]*(" + customNames + ")\\w*\\([,'a-z\\s\\d]*\\)", 'mi');
+        return new RegExp(`^\\w*(${customNames})\\w*`, 'mi');
     }
     return {
         name: 'transformAsyncAwait',
@@ -49,8 +49,15 @@ function default_1() {
             CallExpression(path, state) {
                 if (!path.parentPath.isAwaitExpression() && !path.parentPath.isMemberExpression()) {
                     const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
-                    console.log(state.opts.customCalls, customCallsRegex);
-                    if (customCallsRegex.test(path.getSource())) {
+                    let toTest = '';
+                    if (t.isMemberExpression(path.node.callee)) {
+                        const member = path.node.callee;
+                        toTest = member.property.name;
+                    }
+                    else if (t.isIdentifier(path.node.callee)) {
+                        toTest = path.node.callee.name;
+                    }
+                    if (customCallsRegex.test(toTest)) {
                         path.replaceWith(t.awaitExpression(path.node));
                         path.getFunctionParent().node.async = true;
                     }

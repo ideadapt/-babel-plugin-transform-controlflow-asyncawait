@@ -1,7 +1,7 @@
 {
   "name": "node-typescript-boilerplate",
-  "version": "0.0.1",
-  "description": "…",
+  "version": "0.8.0",
+  "description": "Transform Control Flow based Selenium tests to async await syntax using a babel plugin.",
   "engineStrict": true,
   "engines": {
     "node": ">= 8.9.0"
@@ -27,7 +27,7 @@
     "test-only": "jest --coverage",
     "test:watch": "jest --watch"
   },
-  "author": "Jakub Synowiec <github@jakubsynowiec.info>",
+  "author": "Ueli Kunz <kunz@ideadapt.net>",
   "license": "APLv2",
   "dependencies": {
     "@types/babel-traverse": "^6.25.4",
