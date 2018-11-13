@@ -1,12 +1,13 @@
 //tslint:disable function-name
 //tslint:disable no-default-export
 //tslint:disable no-implicit-dependencies
+//tslint:disable no-duplicate-imports
 
 import {NodePath} from 'babel-traverse';
 import * as t from 'babel-types';
 import {CallExpression} from 'babel-types';
 
-// tslint:disable-next-line typedef
+// tslint:disable-next-line typedef max-func-body-length
 export default function () {
   const webdriverCommands = [
     'click',
