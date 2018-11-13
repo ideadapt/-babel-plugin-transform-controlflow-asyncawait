@@ -4,6 +4,7 @@
 
 import {NodePath} from 'babel-traverse';
 import * as t from 'babel-types';
+import {CallExpression} from 'babel-types';
 
 // tslint:disable-next-line typedef
 export default function () {
@@ -19,6 +20,7 @@ export default function () {
   ];
 
   const protractorApi = [
+    'expect',
     'first',
     'last',
     'count',
@@ -55,6 +57,19 @@ export default function () {
     return null;
   }
 
+  function isArgumentOfExpectCall(callExpr: NodePath<t.CallExpression>): Boolean {
+    if (callExpr.parentPath.isCallExpression()) {
+      const parent = callExpr.parentPath.node as CallExpression;
+      if (t.isIdentifier(parent.callee)) {
+        if (parent.callee.name === 'expect') {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   return {
     name: 'transformAsyncAwait',
     visitor: {
@@ -72,15 +87,20 @@ export default function () {
           }
         }
 
-        if (matchesLibraryApiName(identifier)) {
+        if (matchesLibraryApiName(identifier) || identifier.node.name === 'expect') {
           const callExpr: NodePath<t.CallExpression> = getCallOf(identifier);
-          if (callExpr != null && !callExpr.parentPath.isAwaitExpression()) {
-              asyncAwaitIt(callExpr);
+          if (callExpr != null && !callExpr.parentPath.isAwaitExpression() && !isArgumentOfExpectCall(callExpr)) {
+            asyncAwaitIt(callExpr);
           }
         }
       },
-      CallExpression(callExpr: NodePath<t.CallExpression>, state: {opts: { customCalls: string}}) {
+      CallExpression(callExpr: NodePath<t.CallExpression>, state: { opts: { customCalls: string } }) {
+
         if (!callExpr.parentPath.isAwaitExpression() && !callExpr.parentPath.isMemberExpression()) {
+          if (isArgumentOfExpectCall(callExpr)) {
+            return;
+          }
+
           const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
           let methodName = '';
           if (t.isMemberExpression(callExpr.node.callee)) {
