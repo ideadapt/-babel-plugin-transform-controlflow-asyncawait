@@ -13,6 +13,7 @@ function default_1() {
         'getId',
     ];
     const protractorApi = [
+        'expect',
         'first',
         'last',
         'count',
@@ -43,6 +44,17 @@ function default_1() {
         }
         return null;
     }
+    function isArgumentOfExpectCall(callExpr) {
+        if (callExpr.parentPath.isCallExpression()) {
+            const parent = callExpr.parentPath.node;
+            if (t.isIdentifier(parent.callee)) {
+                if (parent.callee.name === 'expect') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     return {
         name: 'transformAsyncAwait',
         visitor: {
@@ -59,15 +71,18 @@ function default_1() {
                         }
                     }
                 }
-                if (matchesLibraryApiName(identifier)) {
+                if (matchesLibraryApiName(identifier) || identifier.node.name === 'expect') {
                     const callExpr = getCallOf(identifier);
-                    if (callExpr != null && !callExpr.parentPath.isAwaitExpression()) {
+                    if (callExpr != null && !callExpr.parentPath.isAwaitExpression() && !isArgumentOfExpectCall(callExpr)) {
                         asyncAwaitIt(callExpr);
                     }
                 }
             },
             CallExpression(callExpr, state) {
                 if (!callExpr.parentPath.isAwaitExpression() && !callExpr.parentPath.isMemberExpression()) {
+                    if (isArgumentOfExpectCall(callExpr)) {
+                        return;
+                    }
                     const customCallsRegex = createCustomCallRegex(state.opts.customCalls);
                     let methodName = '';
                     if (t.isMemberExpression(callExpr.node.callee)) {
