@@ -1,14 +1,19 @@
 {
   "name": "babel-plugin-transform-controlflow-asyncawait",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Transform Control Flow based Selenium tests to async await syntax using a babel plugin.",
   "engineStrict": true,
   "engines": {
     "node": ">= 8.9.0"
   },
+  "main": "./build/index.js",
+  "bin": {
+    "async-await-migration": "./build/index.js"
+  },
   "devDependencies": {
     "@types/jest": "~23.3.1",
     "@types/node": "~8.10.22",
+    "@zeit/ncc": "^0.18.1",
     "jest": "~23.4.2",
     "rimraf": "~2.6.2",
     "ts-jest": "~23.0.1",
