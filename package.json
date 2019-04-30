@@ -32,7 +32,7 @@
   "dependencies": {
     "@types/babel-traverse": "^6.25.4",
     "@types/babel-types": "^7.0.4",
-    "babel-codemod": "^2.0.3",
+    "babel-codemod": "^2.1.2",
     "babel-plugin-tester": "^5.5.0",
     "tslib": "~1.9.3"
   }

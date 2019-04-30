@@ -5,7 +5,6 @@
 
 import {NodePath} from 'babel-traverse';
 import * as t from 'babel-types';
-import {CallExpression} from 'babel-types';
 
 // tslint:disable-next-line typedef max-func-body-length
 export default function () {
@@ -60,7 +59,7 @@ export default function () {
 
   function isArgumentOfExpectCall(callExpr: NodePath<t.CallExpression>): Boolean {
     if (callExpr.parentPath.isCallExpression()) {
-      const parent = callExpr.parentPath.node as CallExpression;
+      const parent = callExpr.parentPath.node;
       if (t.isIdentifier(parent.callee)) {
         if (parent.callee.name === 'expect') {
           return true;
@@ -90,15 +89,15 @@ export default function () {
 
         if (matchesLibraryApiName(identifier) || identifier.node.name === 'expect') {
           const callExpr: NodePath<t.CallExpression> = getCallOf(identifier);
-          if (callExpr != null && !callExpr.parentPath.isAwaitExpression() && !isArgumentOfExpectCall(callExpr)) {
+          if (callExpr != null && !callExpr.parentPath.isAwaitExpression() && isArgumentOfExpectCall(callExpr) === false) {
             asyncAwaitIt(callExpr);
           }
         }
       },
       CallExpression(callExpr: NodePath<t.CallExpression>, state: { opts: { customCalls: string } }) {
 
-        if (!callExpr.parentPath.isAwaitExpression() && !callExpr.parentPath.isMemberExpression()) {
-          if (isArgumentOfExpectCall(callExpr)) {
+        if (callExpr.parentPath.isAwaitExpression() === false && callExpr.parentPath.isMemberExpression() === false) {
+          if (isArgumentOfExpectCall(callExpr) === true) {
             return;
           }
 
