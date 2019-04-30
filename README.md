@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.com/ideadapt/babel-plugin-transform-controlflow-asyncawait.svg?branch=master)](https://travis-ci.com/ideadapt/babel-plugin-transform-controlflow-asyncawait)
 
-\
+
 
 ## Usage:
 
