@@ -1,5 +1,5 @@
 {
-  "name": "node-typescript-boilerplate",
+  "name": "babel-plugin-transform-controlflow-asyncawait",
   "version": "0.9.0",
   "description": "Transform Control Flow based Selenium tests to async await syntax using a babel plugin.",
   "engineStrict": true,
