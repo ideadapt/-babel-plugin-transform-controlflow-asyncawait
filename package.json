@@ -24,7 +24,7 @@
   },
   "scripts": {
     "clean": "rimraf coverage build tmp",
-    "build": "tsc -p tsconfig.release.json",
+    "build": "npx ncc build src/main.ts -o build",
     "watch": "tsc -w -p tsconfig.release.json",
     "lint": "tslint -t stylish --project \"tsconfig.json\"",
     "pretest": "npm run lint",
